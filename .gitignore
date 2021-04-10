@@ -1,0 +1,9 @@
+node_modules
+dist
+
+# Test app
+app
+products*
+app*
+main.ts
+.env
