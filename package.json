@@ -1,6 +1,6 @@
 {
   "name": "nestjs-event-driven-bus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple and lightweight event bus module for Nest Framework",
   "author": "Alejandro Barrios<ottoabarriosp@hotmail.com>",
   "license": "MIT",
