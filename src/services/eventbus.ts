@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { Subject, Subscription } from 'rxjs';
 import { IEvent } from "../interfaces";
-import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class EventBus {
