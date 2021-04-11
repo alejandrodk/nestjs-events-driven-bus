@@ -2,13 +2,15 @@
 
 Simple, easy and lightweight package for implement Event-Driven bus in a [NestJs Project](https://github.com/nestjs/nest) using reactive programming (RxJs) 🚀
 
+[npm package](https://www.npmjs.com/package/nestjs-event-driven-bus)
+
 ## Usage
 
 ### 1- Install package
 
 ```sh
 npm install nestjs-event-driven-bus
-or
+# or
 yarn add nestjs-event-driven-bus
 ```
 
@@ -50,7 +52,7 @@ export class UpdateStockEvent {
 ### 4- Define Event handler
 
 The event handler is a class in charge of reacting to events of a specific type, it must implement the methods defined in the IEventHandler interface.
-**The event handler class must extends the**IEventHandler** interface*
+**The event handler class must extends the **IEventHandler** interface*
 
 ```sh
 class UpdateStockEventHandler implements IEventHandler
@@ -78,7 +80,7 @@ The event handlers be Dependency Injection friendly, so you can import injected 
 
 ```sh
 constructor(private productsService: ProductsService){}
-or
+# or
 constructor(@Inject() someDependency: SomeDependency) {}
 ```
 
@@ -108,7 +110,11 @@ In your events handlers file, you must to export and array with all handlers, or
 ```sh
 # src/handlers/products.handlers.ts
 
-export const ProductsEventsHandlers = [UpdateStockEventHandler, someEventHandler, AnotherEventHandler]
+export const ProductsEventsHandlers = [
+  UpdateStockEventHandler, 
+  someEventHandler, 
+  AnotherEventHandler
+]
 ```
 
 then, simply import the array of Event Handlers in providers array.
@@ -143,7 +149,10 @@ To produce a new event, all we have to do is publish a new event using the **Pub
  @Get('sell/:id')
   sellProduct(@Param('id') id: string, @Query() queryParams: any): void {
     const { client, quantity } = queryParams;
-    this.eventBus.publish(new UpdateStockEvent(id, client, +quantity), UpdateStockEvent.name)
+    this.eventBus.publish(
+      new UpdateStockEvent(id, client, +quantity), 
+      UpdateStockEvent.name
+    )
   }
 ```
 
@@ -155,10 +164,65 @@ To inform our event handler of an error, we can do so using the PublishError met
     const { client, quantity } = queryParams;
     try {
         # some logic here....
-        this.eventBus.publish(new UpdateStockEvent(id, client, +quantity), UpdateStockEvent.name)
+        this.eventBus.publish(
+          new UpdateStockEvent(id, client, +quantity), 
+          UpdateStockEvent.name
+        )
         # more logic....
     } catch (err) {
         this.eventBus.publishError(error, UpdateStockEvent.name)
     }
   }
 ```
+
+___
+
+### One event, many handlers
+
+By implementing an event architecture, your application will be able to react to different events, keeping the components of your application completely decoupled.
+
+Going back to the example of a product store, you could have an event called SellProductEvent, and for the same event have different event handlers, for example:
+
+starting from the event:
+
+```sh
+# src/events/products.events.ts
+
+export class SellProductEvent {
+  constructor(public productID: string, public quantity: number, public client: string) {}
+}
+```
+
+we can have these different event handlers:
+
+```sh
+# src/handlers/products.handlers.ts
+
+@HandleEvent(SellProductEvent)
+export class SellProductEventHandler implements IEventHandler {
+  constructor(private productsService: ProductsService){}
+  handle(event: SellProductEvent) {
+    #process sell...
+  }
+}
+
+@HandleEvent(SellProductEvent)
+export class SendEmailToClient implements IEventHandler {
+  constructor(private emailTransport: EmailTransport){}
+  handle({ client }: SellProductEvent) {
+    #send email to client...
+    this.emailTransport.newSellEmail(client)...
+  }
+}
+
+@HandleEvent(SellProductEvent)
+export class UpdateStock implements IEventHandler {
+  constructor(private productsService: ProductsService){}
+  handle({ productID, quantity }: SellProductEvent) {
+    #update product stock...
+    this.productsService.updateProductStock(productID, quantity)...
+  }
+}
+```
+
+Look how each event is independent of the others.
