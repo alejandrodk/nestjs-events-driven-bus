@@ -1,2 +1,5 @@
-export * from './dist';
-export * from './src';
+export * from './decorators';
+export * from './enums';
+export * from './modules';
+export * from './services';
+export * from './interfaces';

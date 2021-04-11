@@ -3,3 +3,4 @@
 yarn.lock
 .prettierrc
 tsconfig.json
+__test__
