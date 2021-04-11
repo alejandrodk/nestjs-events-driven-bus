@@ -1,73 +1,132 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
+## Description 
+Simple, easy and lightwight package for implement Event-Driven bus in a [NestJs Project](https://github.com/nestjs/nest) using reactive programming (RxJs) 🚀
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
-```bash
-$ npm install
+## Usage
+### 1- Install package
+```sh
+npm install nestjs-event-driven-bus
+or
+yarn add nestjs-event-driven-bus
+```
+### 2- Import EventBusModule
+Import the **EventBusModule** in the module where you want to dispatch events.
+```sh
+@Module({
+  imports: [EventBusModule],
+  ...
+})
+```
+For example, assuming you are making a products application.
+```sh
+@Module({
+  imports: [EventBusModule],
+  controllers: [ProductsController],
+  providers: [ProductsService],
+  exports: [ProductsService]
+})
+export class ProductsModule {}
 ```
 
-## Running the app
+### 3- Define Events
+Following the previous example, we create an event to update the stock of a product with each sale.
+```sh
+# src/events/products.events.ts
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+export class UpdateStockEvent {
+  constructor(public product: string, public quantity: number) {}
+}
 ```
 
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+### 4- Define Event handler
+The event handler is a class in charge of reacting to events of a specific type, it must implement the methods defined in the IEventHandler interface.
+**The event handler class must extends the **IEventHandler** interface*
+```sh
+class UpdateStockEventHandler implements IEventHandler
 ```
+An event handler must have two required methods (handle, error) and one optional method (complete).
+The **handle** method will be in charge of receiving the event, as you should imagine, the **error** method will receive events if an error occurs, this will allow you to apply certain logic to handle certain cases.
+The **complete** method is optional, as it is only executed once the event transmission is complete.
+```sh
+interface IEventHandler {
+  handle: (event: any) => void;
+  error: (event: any) => void;
+  complete?: () => void;
+}
+```
+To link an event handler with an event, we apply the **HandleEvent** decorator on the class, it receives the class of the event it wants to react to.
+```sh
+@HandleEvent(UpdateStockEvent)
+```
+The event handlers be Dependency Injection friendly, so you can import injected dependencies into the class constructor as always.
+```sh
+constructor(private productsService: ProductsService){}
+or
+constructor(@Inject() someDependency: SomeDependency) {}
+```
+Finally, our Event handler class must looks like
+```sh
+# src/handlers/products.handlers.ts
 
-## Support
+@HandleEvent(UpdateStockEvent)
+export class UpdateStockEventHandler implements IEventHandler {
+  constructor(private productsService: ProductsService){}
+  handle(event: UpdateStockEvent) {
+    console.log('Hello from handler!!!', UpdateStockEventHandler.name)
+    this.productsService.someMethod()...
+    #do something business logic...
+  }
+  error(error: any) {
+     #do something...
+  }
+}
+```
+### 5- Import Event Handlers in your module
+In your events handlers file, you must to export and array with all handlers, or if you preferred, import all of then in the target module, but the first option is the cleanest and easiest way.
+```sh
+# src/handlers/products.handlers.ts
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+export const ProductsEventsHandlers = [UpdateStockEventHandler, someEventHandler, AnotherEventHandler]
+```
+then, simply import the array of Event Handlers in providers array.
+```sh
+@Module({
+  imports: [EventBusModule],
+  controllers: [ProductsController],
+  providers: [ProductsRepository, ProductsService, ...ProductsEventsHandlers],
+  exports: [ProductsService]
+})
+export class ProductsModule {}
+```
+### 6- Dispatch events 🚀
+In our controller (or wherever you need to produce events), you only need to import the EventBus class, the EventBus class has the **Publish**, **PublishError** and **Complete** methods, which we will use to produce new events.
+```sh
+# src/controllers/products.controller.ts
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+@Controller('products')
+export class ProductsController {
+  constructor(private service: ProductsService, private eventBus: EventBus) {}
+}
+```
+To produce a new event, all we have to do is publish a new event using the **Publish** method.
+**The publish method receives an event instance and its name.*
+```sh
+ @Get('sell/:id')
+  sellProduct(@Param('id') id: string, @Query() queryParams: any): void {
+    const { client, quantity } = queryParams;
+    this.eventBus.publish(new UpdateStockEvent(id, client, +quantity), UpdateStockEvent.name)
+  }
+```
+To inform our event handler of an error, we can do so using the PublishError method.
+```sh
+ @Get('sell/:id')
+  sellProduct(@Param('id') id: string, @Query() queryParams: any): void {
+    const { client, quantity } = queryParams;
+    try {
+        # some logic here....
+        this.eventBus.publish(new UpdateStockEvent(id, client, +quantity), UpdateStockEvent.name)
+        # more logic....
+    } catch (err) {
+        this.eventBus.publishError(error, UpdateStockEvent.name)
+    }
+  }
+```

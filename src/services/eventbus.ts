@@ -64,7 +64,7 @@ export class EventBus {
     subject.complete();
   }
 
-  getSubject<T = any>(eventName: string): Subject<T> {
+  private getSubject<T = any>(eventName: string): Subject<T> {
     return this.subscriptions$.get(eventName) as any
   }
 }
