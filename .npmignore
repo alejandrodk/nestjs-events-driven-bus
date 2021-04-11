@@ -4,3 +4,4 @@ yarn.lock
 .prettierrc
 tsconfig.json
 __test__
+nest-cli.json
