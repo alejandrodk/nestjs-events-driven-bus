@@ -1,10 +1,10 @@
 {
   "name": "@alejandrodk/nestjs-event-bus",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simple and lightweight event bus module for Nest Framework",
   "author": "Alejandro Barrios <ottoabarriosp@hotmail.com>",
   "license": "MIT",
-  "url": "https://github.com/alejandrodk/nestjs-events-driven-bus",
+  "url": "https://www.npmjs.com/package/@alejandrodk/nestjs-event-bus",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "format": "prettier --write \"**/*.ts\"",

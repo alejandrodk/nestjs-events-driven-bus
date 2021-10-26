@@ -220,3 +220,7 @@ export class UpdateStock implements IEventHandler {
 ```
 
 Look how each event is independent of the others.
+
+### TEST
+
+Disable the event bus in test environments with *DISABLE_EVENT_HANDLING* env variable.
