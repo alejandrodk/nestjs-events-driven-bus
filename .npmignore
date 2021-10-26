@@ -5,3 +5,4 @@ yarn.lock
 tsconfig.json
 __test__
 nest-cli.json
+publish.txt

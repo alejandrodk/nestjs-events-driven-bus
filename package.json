@@ -1,8 +1,8 @@
 {
-  "name": "nestjs-event-driven-bus",
-  "version": "1.0.8",
+  "name": "@alejandrodk/nestjs-event-bus",
+  "version": "1.0.1",
   "description": "A simple and lightweight event bus module for Nest Framework",
-  "author": "Alejandro Barrios<ottoabarriosp@hotmail.com>",
+  "author": "Alejandro Barrios <ottoabarriosp@hotmail.com>",
   "license": "MIT",
   "url": "https://github.com/alejandrodk/nestjs-events-driven-bus",
   "scripts": {
@@ -48,6 +48,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/alejandrodk/nestjs-events-driven-bus"
-  }
+    "url": "git+https://github.com/alejandrodk/nestjs-events-driven-bus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alejandrodk/nestjs-events-driven-bus/issues"
+  },
+  "homepage": "https://github.com/alejandrodk/nestjs-events-driven-bus#readme",
+  "main": "index.js",
+  "keywords": [
+    "event-bus",
+    "events",
+    "observer",
+    "nodejs",
+    "nestjs",
+    "javascript",
+    "typescript",
+    "rxjs"
+  ]
 }
