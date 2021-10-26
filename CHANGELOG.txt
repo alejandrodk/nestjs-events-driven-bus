@@ -1,0 +1,4 @@
+v1.0.8
+  [changed] Remove requirement to add the class when posting a new event.
+  [add] Allow to disable event handling with "DISABLE_EVENT_HANDLING" evironment variable
+  [add] Display warning for event handlers that has no event handler registered

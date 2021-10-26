@@ -1,17 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { ModuleRef } from "@nestjs/core";
+import { Injectable } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Subject, Subscription } from 'rxjs';
-import { IEvent } from "../interfaces";
+import { IEvent } from '../interfaces';
 
 @Injectable()
 export class EventBus {
-  private subscriptions$ = new Map<string, Subject<any>>()
-  private observers$ = new Map<string, { [key: string]: Subscription }>()
+  private subscriptions$ = new Map<string, Subject<any>>();
+  private observers$ = new Map<string, { [key: string]: Subscription }>();
 
-  constructor(private moduleRef: ModuleRef) { }
+  constructor(private moduleRef: ModuleRef) {}
 
   onModuleDestroy() {
-    this.subscriptions$.forEach((subscription) => subscription.unsubscribe())
+    this.subscriptions$.forEach((subscription) => subscription.unsubscribe());
   }
 
   subscribe(event: any, handler: any): void {
@@ -30,8 +30,8 @@ export class EventBus {
       observer$[handlerName] = subject$.subscribe({
         next: (event) => handler.handle(event),
         error: (event) => handler.error(event),
-        complete: () => handler.complete && handler.complete()
-      })
+        complete: () => handler.complete && handler.complete(),
+      });
     }
   }
 
@@ -44,26 +44,35 @@ export class EventBus {
       observer$[handlerName].unsubscribe();
       observer$[handlerName].closed = true;
 
-      remove && observer$[handlerName].remove(observer$[handlerName])
+      remove && observer$[handlerName].remove(observer$[handlerName]);
     }
   }
 
-  publish<T extends IEvent>(event: T, instance: string) {
-    const subject$: Subject<T> = this.getSubject(instance);
+  publish<T extends IEvent>(event: T) {
+    if (process.env.DISABLE_EVENT_HANDLING) return;
+
+    const clazz = event.constructor.name;
+    const subject$: Subject<T> = this.getSubject(clazz);
     subject$.next(event);
   }
 
-  publishError<T>(error: any, instance: string) {
-    const subject$: Subject<T> = this.getSubject(instance);
+  publishError<T extends IEvent>(error: any, event: T) {
+    if (process.env.DISABLE_EVENT_HANDLING) return;
+
+    const clazz = event.constructor.name;
+    const subject$: Subject<T> = this.getSubject(clazz);
     subject$.error(error);
   }
 
-  complete<T>(instance: string) {
-    const subject: Subject<T> = this.getSubject(instance);
+  complete<T extends IEvent>(event: T) {
+    if (process.env.DISABLE_EVENT_HANDLING) return;
+
+    const clazz = event.constructor.name;
+    const subject: Subject<T> = this.getSubject(clazz);
     subject.complete();
   }
 
   private getSubject<T = any>(eventName: string): Subject<T> {
-    return this.subscriptions$.get(eventName) as any
+    return this.subscriptions$.get(eventName) as any;
   }
 }

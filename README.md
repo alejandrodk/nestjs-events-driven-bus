@@ -149,10 +149,7 @@ To produce a new event, all we have to do is publish a new event using the **Pub
  @Get('sell/:id')
   sellProduct(@Param('id') id: string, @Query() queryParams: any): void {
     const { client, quantity } = queryParams;
-    this.eventBus.publish(
-      new UpdateStockEvent(id, client, +quantity), 
-      UpdateStockEvent.name
-    )
+    this.eventBus.publish(new UpdateStockEvent(id, client, +quantity))
   }
 ```
 
@@ -164,10 +161,7 @@ To inform our event handler of an error, we can do so using the PublishError met
     const { client, quantity } = queryParams;
     try {
         # some logic here....
-        this.eventBus.publish(
-          new UpdateStockEvent(id, client, +quantity), 
-          UpdateStockEvent.name
-        )
+        this.eventBus.publish(new UpdateStockEvent(id, client, +quantity))
         # more logic....
     } catch (err) {
         this.eventBus.publishError(error, UpdateStockEvent.name)
