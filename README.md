@@ -2,23 +2,23 @@
 
 Simple, easy and lightweight package for implement Event-Driven bus in a [NestJs Project](https://github.com/nestjs/nest) using reactive programming (RxJs) 🚀
 
-[npm package](https://www.npmjs.com/package/nestjs-event-driven-bus)
+[npm package](https://www.npmjs.com/package/@alejandrodk/nestjs-event-bus)
 
 ## Usage
 
 ### 1- Install package
 
 ```sh
-npm install nestjs-event-driven-bus
+npm install @alejandrodk/nestjs-event-bus
 # or
-yarn add nestjs-event-driven-bus
+yarn add @alejandrodk/nestjs-event-bus
 ```
 
 ### 2- Import EventBusModule
 
 Import the **EventBusModule** in the module where you want to dispatch events.
 
-```sh
+```ts
 @Module({
   imports: [EventBusModule],
   ...
@@ -27,7 +27,7 @@ Import the **EventBusModule** in the module where you want to dispatch events.
 
 For example, assuming you are making a products application.
 
-```sh
+```ts
 @Module({
   imports: [EventBusModule],
   controllers: [ProductsController],
@@ -41,8 +41,8 @@ export class ProductsModule {}
 
 Following the previous example, we create an event to update the stock of a product with each sale.
 
-```sh
-# src/events/products.events.ts
+```ts
+// src/events/products.events.ts
 
 export class UpdateStockEvent {
   constructor(public product: string, public quantity: number) {}
@@ -54,7 +54,7 @@ export class UpdateStockEvent {
 The event handler is a class in charge of reacting to events of a specific type, it must implement the methods defined in the IEventHandler interface.
 **The event handler class must extends the **IEventHandler** interface*
 
-```sh
+```ts
 class UpdateStockEventHandler implements IEventHandler
 ```
 
@@ -62,7 +62,7 @@ An event handler must have two required methods (handle, error) and one optional
 The **handle** method will be in charge of receiving the event, as you should imagine, the **error** method will receive events if an error occurs, this will allow you to apply certain logic to handle certain cases.
 The **complete** method is optional, as it is only executed once the event transmission is complete.
 
-```sh
+```ts
 interface IEventHandler {
   handle: (event: any) => void;
   error: (event: any) => void;
@@ -72,22 +72,22 @@ interface IEventHandler {
 
 To link an event handler with an event, we apply the **HandleEvent** decorator on the class, it receives the class of the event it wants to react to.
 
-```sh
+```ts
 @HandleEvent(UpdateStockEvent)
 ```
 
 The event handlers be Dependency Injection friendly, so you can import injected dependencies into the class constructor as always.
 
-```sh
+```ts
 constructor(private productsService: ProductsService){}
-# or
+// or
 constructor(@Inject() someDependency: SomeDependency) {}
 ```
 
 Finally, our Event handler class must looks like
 
-```sh
-# src/handlers/products.handlers.ts
+```ts
+// src/handlers/products.handlers.ts
 
 @HandleEvent(UpdateStockEvent)
 export class UpdateStockEventHandler implements IEventHandler {
@@ -95,10 +95,10 @@ export class UpdateStockEventHandler implements IEventHandler {
   handle(event: UpdateStockEvent) {
     console.log('Hello from handler!!!', UpdateStockEventHandler.name)
     this.productsService.someMethod()...
-    #do something business logic...
+    // do something business logic...
   }
   error(error: any) {
-     #do something...
+    // do something...
   }
 }
 ```
@@ -107,8 +107,8 @@ export class UpdateStockEventHandler implements IEventHandler {
 
 In your events handlers file, you must to export and array with all handlers, or if you preferred, import all of then in the target module, but the first option is the cleanest and easiest way.
 
-```sh
-# src/handlers/products.handlers.ts
+```ts
+// src/handlers/products.handlers.ts
 
 export const ProductsEventsHandlers = [
   UpdateStockEventHandler, 
@@ -119,7 +119,7 @@ export const ProductsEventsHandlers = [
 
 then, simply import the array of Event Handlers in providers array.
 
-```sh
+```ts
 @Module({
   imports: [EventBusModule],
   controllers: [ProductsController],
@@ -133,8 +133,8 @@ export class ProductsModule {}
 
 In our controller (or wherever you need to produce events), you only need to import the EventBus class, the EventBus class has the **Publish**, **PublishError** and **Complete** methods, which we will use to produce new events.
 
-```sh
-# src/controllers/products.controller.ts
+```ts
+// src/controllers/products.controller.ts
 
 @Controller('products')
 export class ProductsController {
@@ -145,7 +145,7 @@ export class ProductsController {
 To produce a new event, all we have to do is publish a new event using the **Publish** method.
 **The publish method receives an event instance and its name.*
 
-```sh
+```ts
  @Get('sell/:id')
   sellProduct(@Param('id') id: string, @Query() queryParams: any): void {
     const { client, quantity } = queryParams;
@@ -155,14 +155,14 @@ To produce a new event, all we have to do is publish a new event using the **Pub
 
 To inform our event handler of an error, we can do so using the PublishError method.
 
-```sh
+```ts
  @Get('sell/:id')
   sellProduct(@Param('id') id: string, @Query() queryParams: any): void {
     const { client, quantity } = queryParams;
     try {
-        # some logic here....
+        // some logic here....
         this.eventBus.publish(new UpdateStockEvent(id, client, +quantity))
-        # more logic....
+        // more logic....
     } catch (err) {
         this.eventBus.publishError(error, UpdateStockEvent.name)
     }
@@ -179,8 +179,8 @@ Going back to the example of a product store, you could have an event called Sel
 
 starting from the event:
 
-```sh
-# src/events/products.events.ts
+```ts
+// src/events/products.events.ts
 
 export class SellProductEvent {
   constructor(public productID: string, public quantity: number, public client: string) {}
@@ -189,14 +189,14 @@ export class SellProductEvent {
 
 we can have these different event handlers:
 
-```sh
-# src/handlers/products.handlers.ts
+```ts
+// src/handlers/products.handlers.ts
 
 @HandleEvent(SellProductEvent)
 export class SellProductEventHandler implements IEventHandler {
   constructor(private productsService: ProductsService){}
   handle(event: SellProductEvent) {
-    #process sell...
+    // process sell...
   }
 }
 
@@ -204,7 +204,7 @@ export class SellProductEventHandler implements IEventHandler {
 export class SendEmailToClient implements IEventHandler {
   constructor(private emailTransport: EmailTransport){}
   handle({ client }: SellProductEvent) {
-    #send email to client...
+    // send email to client...
     this.emailTransport.newSellEmail(client)...
   }
 }
@@ -213,7 +213,7 @@ export class SendEmailToClient implements IEventHandler {
 export class UpdateStock implements IEventHandler {
   constructor(private productsService: ProductsService){}
   handle({ productID, quantity }: SellProductEvent) {
-    #update product stock...
+    // update product stock...
     this.productsService.updateProductStock(productID, quantity)...
   }
 }
